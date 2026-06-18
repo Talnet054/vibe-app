@@ -31,6 +31,128 @@
     --font-mono: 'Fira Code', monospace;
 }
 
+/* Light Mode Theme Overrides */
+body.light-mode {
+    --bg-dark: #f1f3f9;
+    --bg-surface: rgba(255, 255, 255, 0.65);
+    --bg-card: rgba(255, 255, 255, 0.75);
+    --bg-card-hover: rgba(255, 255, 255, 0.95);
+    
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.16);
+    
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --color-feature-glow: rgba(16, 185, 129, 0.06);
+    --color-announcement-glow: rgba(99, 102, 241, 0.06);
+    --color-issue-glow: rgba(239, 68, 68, 0.06);
+    --color-deprecation-glow: rgba(245, 158, 11, 0.06);
+}
+
+/* Theme Toggle Button Displays */
+.theme-toggle-btn .moon-icon {
+    display: none;
+}
+.theme-toggle-btn .sun-icon {
+    display: block;
+}
+
+body.light-mode .theme-toggle-btn .moon-icon {
+    display: block;
+}
+body.light-mode .theme-toggle-btn .sun-icon {
+    display: none;
+}
+
+/* Light Mode Component Refinements */
+body.light-mode .bg-orb {
+    opacity: 0.22;
+}
+
+body.light-mode .app-title {
+    background: linear-gradient(135deg, #0f172a 30%, #4f46e5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .search-box input {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+body.light-mode .search-box input:focus {
+    background: #ffffff;
+}
+
+body.light-mode .filter-tag:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-mode .stat-item {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .card-body code {
+    background: rgba(0, 0, 0, 0.06);
+    color: #0f172a;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .card-footer {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .card-select-btn:hover {
+    color: #4f46e5;
+}
+
+body.light-mode .skeleton-card {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+body.light-mode .skeleton-card::after {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(0, 0, 0, 0.015) 20%,
+        rgba(0, 0, 0, 0.035) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+
+body.light-mode .modal-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+body.light-mode .modal-title,
+body.light-mode .x-logo-sm {
+    color: #0f172a;
+}
+body.light-mode .modal-header {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+body.light-mode .modal-footer {
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+body.light-mode .tweet-composer-area {
+    background: rgba(0, 0, 0, 0.015);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+body.light-mode .tweet-composer-area textarea {
+    color: #0f172a;
+}
+body.light-mode .update-preview-box {
+    background: rgba(0, 0, 0, 0.02);
+}
+body.light-mode .composer-meta {
+    border-top-color: rgba(0, 0, 0, 0.04);
+}
+body.light-mode .progress-ring__circle-bg {
+    stroke: #e2e8f0;
+}
+
 /* Reset & Base Styles */
 * {
     box-sizing: border-box;
@@ -561,6 +683,19 @@ body {
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.04);
     padding-top: 1rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-secondary.copied {
+    border-color: var(--color-feature);
+    color: var(--color-feature);
+    background: rgba(16, 185, 129, 0.08);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
 }
 
 .btn-origin {

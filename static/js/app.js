@@ -1,12 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for stored theme preference and apply it
+    const savedTheme = localStorage.getItem('theme');
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    if (savedTheme === 'light' || (!savedTheme && prefersLight)) {
+        document.body.classList.add('light-mode');
+    }
+
     // State Variables
     let allNotes = [];
     let currentFilterType = 'all';
     let currentSearchQuery = '';
     let selectedNote = null;
+    let activeFilteredNotes = [];
 
     // DOM Elements
     const btnRefresh = document.getElementById('btn-refresh');
+    const btnExportCsv = document.getElementById('btn-export-csv');
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
     const spinnerIcon = document.getElementById('spinner-icon');
     const syncStatusText = document.getElementById('status-text');
     const notesGrid = document.getElementById('notes-grid');
@@ -49,6 +59,20 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRefresh.addEventListener('click', () => {
         fetchReleaseNotes(true);
     });
+
+    if (btnExportCsv) {
+        btnExportCsv.addEventListener('click', () => {
+            exportNotesToCSV();
+        });
+    }
+
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+    }
 
     searchInput.addEventListener('input', (e) => {
         currentSearchQuery = e.target.value.toLowerCase().trim();
@@ -163,6 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return matchesType && matchesSearch;
         });
 
+        // Cache globally for export functionality
+        activeFilteredNotes = filteredNotes;
+
         // Update count badge
         notesCountBadge.textContent = `${filteredNotes.length} item${filteredNotes.length !== 1 ? 's' : ''} found`;
 
@@ -204,17 +231,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
-                    <button class="btn btn-tweet btn-action-tweet">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                        </svg>
-                        <span>Tweet</span>
-                    </button>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary btn-action-copy" title="Copy to Clipboard">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span>Copy</span>
+                        </button>
+                        <button class="btn btn-tweet btn-action-tweet">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                            <span>Tweet</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
             // Event Listeners for action buttons inside the card
             const tweetBtn = card.querySelector('.btn-action-tweet');
+            const copyBtn = card.querySelector('.btn-action-copy');
             const selectBtn = card.querySelector('.card-select-btn');
             
             const handleTweetInit = () => {
@@ -223,6 +260,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tweetBtn.addEventListener('click', handleTweetInit);
             selectBtn.addEventListener('click', handleTweetInit);
+
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(note.text).then(() => {
+                    const textSpan = copyBtn.querySelector('span');
+                    const originalText = textSpan.textContent;
+                    textSpan.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    
+                    const originalSvg = copyBtn.querySelector('svg').innerHTML;
+                    copyBtn.querySelector('svg').innerHTML = '<path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+                    
+                    setTimeout(() => {
+                        textSpan.textContent = originalText;
+                        copyBtn.classList.remove('copied');
+                        copyBtn.querySelector('svg').innerHTML = originalSvg;
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            });
 
             notesGrid.appendChild(card);
         });
@@ -318,5 +375,33 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             progressCircle.style.stroke = '#1d9bf0'; // Twitter Blue
         }
+    }
+
+    function exportNotesToCSV() {
+        if (activeFilteredNotes.length === 0) {
+            alert("No release notes to export!");
+            return;
+        }
+
+        const headers = ["Date", "Type", "Description", "Link"];
+        const rows = activeFilteredNotes.map(note => [
+            `"${note.date.replace(/"/g, '""')}"`,
+            `"${note.type.replace(/"/g, '""')}"`,
+            `"${note.text.replace(/"/g, '""')}"`,
+            `"${note.link.replace(/"/g, '""')}"`
+        ]);
+
+        const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        const filename = `bigquery_release_notes_${currentFilterType}_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 });
